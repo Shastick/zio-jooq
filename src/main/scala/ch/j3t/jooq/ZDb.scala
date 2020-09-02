@@ -5,35 +5,38 @@ import zio.ZIO
 import zio.blocking._
 
 /**
- * Using effectBlocking with a synchronous usage of the DSL (eg, no use of the xxxAsync methods)
+ * Class wrapping a ZIO that provides a DSLContext,
+ * which will be used in conjunction with the logic passed by the users.
  */
 class ZDb(dslSup: ZIO[Any, Throwable, DSLContext]) {
 
+  /**
+   * Return an effect that will pass a DSLContext to the specified function when run.
+   * Note: statements must be explicitly executed (ie, run/fetch/execute methods MUST be called)
+   */
   def of[T](f: DSLContext => T) =
     dslSup.flatMap(dsl => ZDb.result(f)(dsl))
 
+  /**
+   * Return an effect that will run the passed function within a transaction
+   * Note: statements must be explicitly executed (ie, run/fetch/execute methods MUST be called)
+   */
   def ofTransaction[T](f: DSLContext => T) =
     dslSup.flatMap(dsl => ZDb.transactionResult(f)(dsl))
 
 }
 
-class ZIODSLContext(underlying: DSLContext) {
-
-  def zioResult[T](f: DSLContext => T) =
-    ZDb.result(f)(underlying)
-
-  def zioTransactionResult[T](f: DSLContext => T) =
-    ZDb.transactionResult(f)(underlying)
-
-}
-
 object ZDb {
 
-  implicit def toZioDsl(dsl: DSLContext): ZIODSLContext = new ZIODSLContext(dsl)
-
+  /**
+   * Wrap the application of 'dsl' to 'f' within a blocking effect
+   */
   private[jooq] def result[T](f: DSLContext => T)(dsl: DSLContext) =
     effectBlocking(f(dsl))
 
+  /**
+   * Runs 'f' with a dsl provided from the context of a transaction (obtained from the passed dsl)
+   */
   private[jooq] def transactionResult[T](f: DSLContext => T)(dsl: DSLContext) =
     effectBlocking(dsl.transactionResult(c => f(c.dsl)))
 
