@@ -8,8 +8,6 @@ This lib essentially helps you quickly wrap ZIO's `effectBlocking()` around ever
 ## Usage
 
 ```scala
-val dslProvider: ZIO[Any, Throwable, DSLContext] = ...
-
 val zDb = ZDb.fromDslContext(ctxt)
 // alternatively:
     zDb = ZDb.fromDataSource(...)

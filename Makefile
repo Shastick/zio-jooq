@@ -6,7 +6,8 @@ build:
 	sbt +clean +compile
 
 test:
-	sbt +test
+	sbt 'set scalaVersion := "2.12.12"' test
+	sbt 'set scalaVersion := "2.13.3"' test
 
 release: test
 	sbt 'set version := "$(VERSION)"' +publishSigned
