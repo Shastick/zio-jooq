@@ -1,7 +1,13 @@
 package ch.j3t.jooq
 
-import org.jooq.DSLContext
-import zio.ZIO
+import java.sql.{ Connection, DriverManager }
+
+import com.zaxxer.hikari.{ HikariConfig, HikariDataSource }
+import javax.sql.DataSource
+import org.jooq.conf.Settings
+import org.jooq.impl.DSL
+import org.jooq.{ DSLContext, SQLDialect }
+import zio.{ ZIO }
 import zio.blocking._
 
 /**
@@ -39,5 +45,43 @@ object ZDb {
    */
   private[jooq] def transactionResult[T](f: DSLContext => T)(dsl: DSLContext) =
     effectBlocking(dsl.transactionResult(c => f(c.dsl)))
+
+  /**
+   * @return a ZDb working from a DSLContext that wraps a single connection
+   */
+  def singleConnection(dbCreds: DbCreds, dialect: SQLDialect, settings: Settings = new Settings()): ZDb =
+    fromConnection(DriverManager.getConnection(dbCreds.url, dbCreds.user, dbCreds.password), dialect, settings)
+
+  /**
+   * @return a ZDb working from a DSLContext that wraps a pooled data source that relies on the Hikari Connection Pool
+   */
+  def pooledConnections(hikariConfig: HikariConfig, dialect: SQLDialect, settings: Settings): ZDb =
+    fromDataSource(new HikariDataSource(hikariConfig), dialect, settings)
+
+  /**
+   * @return a ZDb working from a DSLContext that wraps a pooled data source that relies on the Hikari Connection Pool
+   *         with its default configuration.
+   */
+  def pooledConnections(dbCreds: DbCreds, dialect: SQLDialect, settings: Settings = new Settings()): ZDb =
+    pooledConnections(dbCreds.deriveHikariCfg, dialect, settings)
+
+  /**
+   * @return a ZDb working from a DSLContext wrapping the passed datasource.
+   */
+  def fromDataSource(dataSource: DataSource, dialect: SQLDialect, settings: Settings = new Settings()): ZDb =
+    fromDslContext(DSL.using(dataSource, dialect, settings))
+
+  /**
+   * @return a ZDb working from a DSLContext that wraps the default jooq data source
+   *         (built from the passed JDBC connection)
+   */
+  def fromConnection(connection: Connection, dialect: SQLDialect, settings: Settings = new Settings()): ZDb =
+    fromDslContext(DSL.using(connection, dialect, settings))
+
+  /**
+   * @return a ZDb that will always work from the passed DSLContext
+   */
+  def fromDslContext(dslContext: DSLContext): ZDb =
+    new ZDb(ZIO.succeed(dslContext))
 
 }

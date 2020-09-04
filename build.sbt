@@ -8,11 +8,12 @@ lazy val root =
     .settings(settings)
     .settings(
       libraryDependencies ++= Seq(
-        library.jooq        % Provided,
-        library.zio         % Provided,
-        library.zioTest     % Test,
-        library.zioTestSbt  % Test,
-        library.h2          % Test,
+        library.jooq       % Provided,
+        library.hikariCp   % Provided,
+        library.zio        % Provided,
+        library.zioTest    % Test,
+        library.zioTestSbt % Test,
+        library.h2         % Test
       ),
       publishArtifact := true,
       testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
@@ -31,11 +32,12 @@ lazy val library =
       val zio = "1.0.1"
     }
 
-    val jooq        = "org.jooq"       % "jooq"         % "3.13.4"
-    val zio         = "dev.zio"       %% "zio"          % Version.zio
-    val zioTest     = "dev.zio"       %% "zio-test"     % Version.zio
-    val zioTestSbt  = "dev.zio"       %% "zio-test-sbt" % Version.zio
-    val h2          = "com.h2database" % "h2"           % "1.4.200"
+    val jooq       = "org.jooq"       % "jooq"         % "3.13.4"
+    val zio        = "dev.zio"       %% "zio"          % Version.zio
+    val zioTest    = "dev.zio"       %% "zio-test"     % Version.zio
+    val zioTestSbt = "dev.zio"       %% "zio-test-sbt" % Version.zio
+    val h2         = "com.h2database" % "h2"           % "1.4.200"
+    val hikariCp   = "com.zaxxer"     % "HikariCP"     % "3.4.5"
   }
 
 // *****************************************************************************
