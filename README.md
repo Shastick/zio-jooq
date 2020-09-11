@@ -21,6 +21,14 @@ for {
 
 ```
 
+The artifact coordinates are:
+
+```
+libraryDependencies += "ch.j3t" %% "zio-jooq" % version
+```
+
+[Check over here for all available versions](https://mvnrepository.com/artifact/ch.j3t/zio-jooq)
+
 ### Connection Pooling
 
 You will need the hikariCp jars on the classpath if you intend to use the `pooledConnections` variants:
